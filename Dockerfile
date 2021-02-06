@@ -1,4 +1,4 @@
-FROM python:3.6-jessie
+FROM python:3.8-buster
 
 # TA-lib is required by the python TA-lib wrapper. This provides analysis.
 COPY lib/ta-lib-0.4.0-src.tar.gz /tmp/ta-lib-0.4.0-src.tar.gz
@@ -10,11 +10,14 @@ RUN cd /tmp && \
   make && \
   make install
 
-ADD app/ /app
+ADD app/requirements-step-1.txt /app/requirements-step-1.txt
+ADD app/requirements-step-2.txt /app/requirements-step-2.txt
 WORKDIR /app
 
-# numpy must be installed first for python TA-lib
-RUN pip install numpy==1.14.0
-RUN pip install -r requirements.txt
+# Pip doesn't install requirements sequentially.
+# To ensure pre-reqs are installed in the correct
+# order they have been split into two files
+RUN pip install -r requirements-step-1.txt
+RUN pip install -r requirements-step-2.txt
 
-CMD ["/usr/local/bin/python","app.py"]
+CMD ["python","app.py"]
